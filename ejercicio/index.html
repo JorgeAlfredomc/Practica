@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<div>
+    <label >Nombre</label><br>
+    <input id="nombre" type="text"><br>
+    <label>Apellidos</label><br>
+    <input id="apellidos" type="text"><br>
+    <label >Correo</label><br>
+    <input id="correo" type="email"><br>
+    <button id="btn-registrar">Registrar</button>
+</div>
+
+<div id="contenedor">
+
+
+</div>
+
+<script>
+const btn_registrar = document.getElementById('btn-registrar');
+const contenedor = document.getElementById('contenedor');
+const nombreInput = document.getElementById('nombre');
+const apellidosInput = document.getElementById('apellidos');
+const correoInput = document.getElementById('correo');
+
+function pintarAlumnos(data) {
+    contenedor.innerHTML = '';
+    data.forEach(item => {
+        const div = document.createElement('div');
+        div.style = 'border-radius:10px; background-color: gray; border: 1px solid gray; margin: 8px 0; padding: 8px;';
+        const p = document.createElement('p');
+        p.innerText = `Nombre: ${item.nombre} ${item.apellidos}\nCorreo: ${item.correo}`;
+        div.appendChild(p);
+        contenedor.appendChild(div);
+    });
+}
+
+function cargarAlumnos() {
+    fetch('http://localhost/ejercicio/servicio.php')
+        .then(response => {
+            if (!response.ok) throw new Error('Hubo un error al consultar');
+            return response.json();
+        })
+        .then(data => {
+            if (!Array.isArray(data)) throw new Error('Respuesta inesperada del servidor');
+            pintarAlumnos(data);
+        })
+        .catch(error => console.error('Hubo un error:', error));
+}
+
+btn_registrar.addEventListener('click', () => {
+    const nombre = nombreInput.value.trim();
+    const apellidos = apellidosInput.value.trim();
+    const correo = correoInput.value.trim();
+
+    if (!nombre || !apellidos || !correo) {
+        alert('Completa nombre, apellidos y correo.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('agregar_usuario', '1');
+    formData.append('nombre', nombre);
+    formData.append('apellidos', apellidos);
+    formData.append('correo', correo);
+
+    fetch('http://localhost/ejercicio/servicio.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            if (!response.ok) throw new Error('Hubo un error al registrar');
+            return response.json();
+        })
+        .then(data => {
+            if (!Array.isArray(data)) throw new Error('Respuesta inesperada del servidor');
+            pintarAlumnos(data);
+            nombreInput.value = '';
+            apellidosInput.value = '';
+            correoInput.value = '';
+        })
+        .catch(error => console.error('Hubo un error:', error));
+});
+
+cargarAlumnos();
+</script>
+</body>
+</html>
